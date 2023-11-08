@@ -4,11 +4,11 @@ services:
         ports:
             - '3306:3306'
         environment:
-            MYSQL_ROOT_PASSWORD: 'batata'
+            MYSQL_ROOT_PASSWORD: ${DB_PASS}
             MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: 'gofriends'
-            MYSQL_USER: 'gofriends'
-            MYSQL_PASSWORD: 'batata'
+            MYSQL_DATABASE: ${DB_NAME}
+            MYSQL_USER: ${DB_USER}
+            MYSQL_PASSWORD: ${DB_PASS}
         volumes:
             - 'mysql:/var/lib/mysql'
 volumes:

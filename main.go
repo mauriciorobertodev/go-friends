@@ -2,21 +2,19 @@ package main
 
 import (
 	"fmt"
+	"go-friends/pkg/config"
 	"go-friends/pkg/router"
 	"log"
 	"net/http"
 )
 
 func main() {
-	fmt.Printf("Iniciando API...")
-	
+	fmt.Printf("Rodando API...")
+
+	config.Load()
+
 	r := router.NewRouter()
 
-	err := http.ListenAndServe(":5000", r)
-
-	if err != nil {
-		log.Fatal("Erro ao iniciar o servidor http")
-	}
-
-	fmt.Printf("API escutando na porta 5000...")
+	fmt.Printf("Escutando na porta: %d", config.Port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
 }
