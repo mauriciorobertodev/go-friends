@@ -1,7 +1,12 @@
 package router
 
-import "github.com/gorilla/mux"
+import (
+	"go-friends/pkg/router/routes"
+
+	"github.com/gorilla/mux"
+)
 
 func NewRouter() *mux.Router {
-	return mux.NewRouter()
+	r := mux.NewRouter()
+	return routes.SetRoutes(r)
 }
