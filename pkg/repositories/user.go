@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 	"go-friends/pkg/models"
 )
 
@@ -34,4 +35,42 @@ func (r users) Store(user models.User) (uint64, error) {
 	}
 
 	return uint64(lastId), nil
+}
+
+func (r users) Search(search string) ([]models.User, error) {
+	search = fmt.Sprintf("%%%s%%", search)
+
+	rows, err := r.db.Query(
+		"SELECT id, name, nick, email, created_at FROM users WHERE name LIKE ? OR nick LIKE ?",
+		search,
+		search,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var users []models.User
+
+	for rows.Next() {
+		var user models.User
+
+		err := rows.Scan(
+			&user.Id,
+			&user.Name,
+			&user.Nick,
+			&user.Email,
+			&user.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }

@@ -8,10 +8,28 @@ import (
 	"go-friends/pkg/responses"
 	"io"
 	"net/http"
+	"strings"
 )
 
 func ListUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Listando usuários..."))
+	nameOrNick := strings.ToLower(r.URL.Query().Get("search"))
+	db, err := database.Connect()
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewUserRepository(db)
+	users, err := repository.Search(nameOrNick)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.Json(w, http.StatusOK, users)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
