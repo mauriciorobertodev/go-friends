@@ -108,3 +108,20 @@ func (r users) FindUserById(id uint64) (models.User, error) {
 
 	return models.User{}, errors.New("user does not exists")
 }
+
+func (r users) UpdateUser(id uint64, user models.User) error {
+	stm, err := r.db.Prepare("UPDATE users SET name = ?, nick = ?, email = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+
+	defer stm.Close()
+
+	_, err = stm.Exec(user.Name, user.Nick, user.Email, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
