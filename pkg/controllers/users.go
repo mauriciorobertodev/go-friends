@@ -2,12 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"go-friends/pkg/database"
 	"go-friends/pkg/models"
 	"go-friends/pkg/repositories"
+	"go-friends/pkg/responses"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -23,28 +22,34 @@ func StoreUser(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
 	}
 
 	var user models.User
 	if err = json.Unmarshal(body, &user); err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusBadRequest, err)
+		return
 	}
 
 	db, err := database.Connect()
 
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	repository := repositories.NewUserRepository(db)
-	id, err := repository.Store(user)
+	user.Id, err = repository.Store(user)
+
+	defer db.Close()
 
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("Id inserido: %d", id)))
+	responses.Json(w, http.StatusCreated, user)
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
