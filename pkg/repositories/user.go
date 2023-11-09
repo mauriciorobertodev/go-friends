@@ -125,3 +125,21 @@ func (r users) UpdateUser(id uint64, user models.User) error {
 
 	return nil
 }
+
+func (r users) DeleteUser(id uint64) error {
+	stm, err := r.db.Prepare("DELETE FROM users WHERE id = ?")
+
+	if err != nil {
+		return err
+	}
+
+	defer stm.Close()
+
+	_, err = stm.Exec(id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
