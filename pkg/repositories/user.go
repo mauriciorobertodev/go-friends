@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"go-friends/pkg/models"
 )
@@ -73,4 +74,37 @@ func (r users) Search(search string) ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r users) FindUserById(id uint64) (models.User, error) {
+	rows, err := r.db.Query(
+		"SELECT id, name, nick, email, created_at FROM users WHERE id = ?",
+		id,
+	)
+
+	if err != nil {
+		return models.User{}, err
+	}
+
+	defer rows.Close()
+
+	var user models.User
+
+	if rows.Next() {
+		err := rows.Scan(
+			&user.Id,
+			&user.Name,
+			&user.Nick,
+			&user.Email,
+			&user.CreatedAt,
+		)
+
+		if err != nil {
+			return models.User{}, err
+		}
+
+		return user, nil
+	}
+
+	return models.User{}, errors.New("user does not exists")
 }

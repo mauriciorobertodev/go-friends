@@ -8,7 +8,10 @@ import (
 	"go-friends/pkg/responses"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 func ListUser(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +36,32 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Buscando usuário..."))
+	params := mux.Vars(r)
+
+	id, err := strconv.ParseUint(params["id"], 10, 64)
+
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewUserRepository(db)
+	user, err := repository.FindUserById(id)
+
+	if err != nil {
+		responses.Error(w, http.StatusNotFound, err)
+		return
+	}
+
+	responses.Json(w, http.StatusOK, user)
 }
 
 func StoreUser(w http.ResponseWriter, r *http.Request) {
