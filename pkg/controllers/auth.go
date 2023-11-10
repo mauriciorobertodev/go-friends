@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"go-friends/pkg/authentication"
 	"go-friends/pkg/database"
 	"go-friends/pkg/models"
 	"go-friends/pkg/repositories"
@@ -48,5 +49,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Voce está logado..."))
+	token, err := authentication.CreateToken(savedUser.Id)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.Json(w, http.StatusOK, token)
 }
