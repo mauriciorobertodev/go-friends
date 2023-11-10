@@ -143,3 +143,23 @@ func (r users) DeleteUser(id uint64) error {
 
 	return nil
 }
+
+func (r users) FindUserByEmail(email string) (models.User, error) {
+	rows, err := r.db.Query("SELECT id, password FROM users WHERE email = ?", email)
+
+	if err != nil {
+		return models.User{}, err
+	}
+
+	defer rows.Close()
+
+	var user models.User
+
+	if rows.Next() {
+		if err = rows.Scan(&user.Id, &user.Password); err != nil {
+			return models.User{}, err
+		}
+	}
+
+	return user, nil
+}
