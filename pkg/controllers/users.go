@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
+	"go-friends/pkg/authentication"
 	"go-friends/pkg/database"
 	"go-friends/pkg/models"
 	"go-friends/pkg/repositories"
@@ -113,6 +115,18 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	requesterId, err := authentication.ExtractUserId(r)
+
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	if requesterId != id {
+		responses.Error(w, http.StatusForbidden, errors.New("you cannot update another user"))
+		return
+	}
+
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
@@ -157,6 +171,18 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	requesterId, err := authentication.ExtractUserId(r)
+
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	if requesterId != id {
+		responses.Error(w, http.StatusForbidden, errors.New("you cannot delete another user"))
 		return
 	}
 
