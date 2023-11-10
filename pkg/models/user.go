@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"go-friends/pkg/security"
 	"strings"
 	"time"
 
@@ -21,7 +22,12 @@ func (u *User) Prepare(register bool) error {
 	if err := u.validate(register); err != nil {
 		return err
 	}
-	u.format()
+	err := u.format(register)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -39,7 +45,7 @@ func (u *User) validate(register bool) error {
 	}
 
 	if err := checkmail.ValidateFormat(u.Email); err != nil {
-		return errors.New("The email field must be a valid email address")
+		return errors.New("the email field must be a valid email address")
 	}
 
 	if register && u.Password == "" {
@@ -49,8 +55,19 @@ func (u *User) validate(register bool) error {
 	return nil
 }
 
-func (u *User) format() {
+func (u *User) format(register bool) error {
 	u.Name = strings.TrimSpace(u.Name)
 	u.Nick = strings.TrimSpace(u.Nick)
 	u.Email = strings.TrimSpace(u.Email)
+
+	if register {
+		hashedPassword, err := security.Hash(u.Password)
+
+		if err != nil {
+			return err
+		}
+		u.Password = string(hashedPassword)
+	}
+
+	return nil
 }
