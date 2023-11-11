@@ -246,3 +246,44 @@ func GetPostsOfUser(w http.ResponseWriter, r *http.Request) {
 
 	responses.Json(w, http.StatusOK, users)
 }
+
+func LikePost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	id, err := strconv.ParseUint(params["id"], 10, 64)
+
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	userId, err := authentication.ExtractUserId(r)
+
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	if userId == id {
+		responses.Error(w, http.StatusForbidden, errors.New("you cannot like your own post"))
+		return
+	}
+
+	db, err := database.Connect()
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewPostRepository(db)
+	err = repository.LikePost(id)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.Json(w, http.StatusNoContent, nil)
+}

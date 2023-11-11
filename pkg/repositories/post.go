@@ -192,3 +192,20 @@ func (r posts) GetPostsOfUser(userId uint64) ([]models.Post, error) {
 
 	return posts, nil
 }
+
+func (r posts) LikePost(id uint64) error {
+	stm, err := r.db.Prepare("UPDATE posts SET likes = likes + 1 WHERE id = ?")
+	if err != nil {
+		return err
+	}
+
+	defer stm.Close()
+
+	_, err = stm.Exec(id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
