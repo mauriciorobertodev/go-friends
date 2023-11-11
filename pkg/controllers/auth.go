@@ -58,3 +58,59 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	responses.Json(w, http.StatusOK, token)
 }
+
+func UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	userId, err := authentication.ExtractUserId(r)
+
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	var password models.Password
+	if err = json.Unmarshal(body, &password); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewUserRepository(db)
+	oldHashedPassword, err := repository.GetPasswordById(userId)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err = security.Verify(oldHashedPassword, password.Actual); err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	newHashedPassword, err := security.Hash(password.New)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err = repository.UpdatePasswordById(userId, string(newHashedPassword)); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.Json(w, http.StatusNoContent, nil)
+}

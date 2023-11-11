@@ -12,4 +12,10 @@ var authRoutes = []Route{
 		Handler:            controllers.Login,
 		NeedAuthentication: false,
 	},
+	{
+		Uri:                "/update-password",
+		Method:             http.MethodPost,
+		Handler:            controllers.UpdatePassword,
+		NeedAuthentication: true,
+	},
 }
