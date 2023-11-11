@@ -180,3 +180,20 @@ func (r users) Follow(userId, followerId uint64) error {
 	}
 	return nil
 }
+
+func (r users) Unfollow(userId, followerId uint64) error {
+	stm, err := r.db.Prepare("DELETE FROm followers WHERE user_id = ? AND follower_id = ?")
+
+	if err != nil {
+		return err
+	}
+
+	defer stm.Close()
+
+	_, err = stm.Exec(userId, followerId)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
